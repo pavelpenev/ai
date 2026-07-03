@@ -577,3 +577,86 @@ exports[`doStream > tool call > should stream tool call 1`] = `
   },
 ]
 `;
+
+exports[`doStream > two parallel tool calls fragmented across multiple chunks > should reassemble each parallel tool call independently, keyed by index 1`] = `
+[
+  {
+    "type": "stream-start",
+    "warnings": [],
+  },
+  {
+    "id": "845f3227b5ea47788869bfd9e7c44e95",
+    "modelId": "mistral-small-latest",
+    "timestamp": 2026-07-03T16:09:03.000Z,
+    "type": "response-metadata",
+  },
+  {
+    "id": "zJmyxuLgx",
+    "toolName": "getWeather",
+    "type": "tool-input-start",
+  },
+  {
+    "delta": "{"location": "Paris, France"}",
+    "id": "zJmyxuLgx",
+    "type": "tool-input-delta",
+  },
+  {
+    "id": "zJmyxuLgx",
+    "type": "tool-input-end",
+  },
+  {
+    "input": "{"location": "Paris, France"}",
+    "toolCallId": "zJmyxuLgx",
+    "toolName": "getWeather",
+    "type": "tool-call",
+  },
+  {
+    "id": "39yaisjed",
+    "toolName": "getWeather",
+    "type": "tool-input-start",
+  },
+  {
+    "delta": "{"location": "London, UK"}",
+    "id": "39yaisjed",
+    "type": "tool-input-delta",
+  },
+  {
+    "id": "39yaisjed",
+    "type": "tool-input-end",
+  },
+  {
+    "input": "{"location": "London, UK"}",
+    "toolCallId": "39yaisjed",
+    "toolName": "getWeather",
+    "type": "tool-call",
+  },
+  {
+    "finishReason": {
+      "raw": "tool_calls",
+      "unified": "tool-calls",
+    },
+    "type": "finish",
+    "usage": {
+      "inputTokens": {
+        "cacheRead": undefined,
+        "cacheWrite": undefined,
+        "noCache": 129,
+        "total": 129,
+      },
+      "outputTokens": {
+        "reasoning": undefined,
+        "text": 25,
+        "total": 25,
+      },
+      "raw": {
+        "completion_tokens": 25,
+        "prompt_tokens": 129,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+        },
+        "total_tokens": 154,
+      },
+    },
+  },
+]
+`;

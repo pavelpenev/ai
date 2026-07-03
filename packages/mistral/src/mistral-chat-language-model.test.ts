@@ -888,6 +888,39 @@ describe('doStream', () => {
     });
   });
 
+  describe('two parallel tool calls fragmented across multiple chunks', () => {
+    beforeEach(() => {
+      prepareChunksFixtureResponse('mistral-tool-call-fragmented-parallel');
+    });
+
+    it('should reassemble each parallel tool call independently, keyed by index', async () => {
+      const result = await model.doStream({ prompt: TEST_PROMPT });
+      const parts = await convertReadableStreamToArray(result.stream);
+
+      expect(parts).toMatchSnapshot();
+
+      const toolCallParts = parts.filter(part => part.type === 'tool-call');
+      expect(toolCallParts).toHaveLength(2);
+      expect(
+        toolCallParts.map((part: any) => ({
+          toolCallId: part.toolCallId,
+          toolName: part.toolName,
+          input: JSON.parse(part.input),
+        })),
+      ).toStrictEqual([
+        { toolCallId: 'zJmyxuLgx', toolName: 'getWeather', input: { location: 'Paris, France' } },
+        { toolCallId: '39yaisjed', toolName: 'getWeather', input: { location: 'London, UK' } },
+      ]);
+
+      expect(
+        parts.filter((p: any) => p.type === 'tool-input-start' && p.id === 'zJmyxuLgx'),
+      ).toHaveLength(1);
+      expect(
+        parts.filter((p: any) => p.type === 'tool-input-end' && p.id === 'zJmyxuLgx'),
+      ).toHaveLength(1);
+    });
+  });
+
   describe('reasoning', () => {
     beforeEach(() => {
       prepareChunksFixtureResponse('mistral-reasoning');
