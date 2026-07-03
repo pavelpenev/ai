@@ -21,6 +21,7 @@ import {
   ParseResult,
   postJsonToApi,
   serializeModelOptions,
+  StreamingToolCallTracker,
   WORKFLOW_SERIALIZE,
   WORKFLOW_DESERIALIZE,
 } from '@ai-sdk/provider-utils';
@@ -338,6 +339,7 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
     let isFirstChunk = true;
     let activeText = false;
     let activeReasoningId: string | null = null;
+    let toolCallTracker: StreamingToolCallTracker;
 
     const generateId = this.generateId;
 
@@ -348,6 +350,7 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
           LanguageModelV4StreamPart
         >({
           start(controller) {
+            toolCallTracker = new StreamingToolCallTracker(controller, { generateId });
             controller.enqueue({ type: 'stream-start', warnings });
           },
 
@@ -432,34 +435,8 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
             }
 
             if (delta?.tool_calls != null) {
-              for (const toolCall of delta.tool_calls) {
-                const toolCallId = toolCall.id;
-                const toolName = toolCall.function.name;
-                const input = toolCall.function.arguments;
-
-                controller.enqueue({
-                  type: 'tool-input-start',
-                  id: toolCallId,
-                  toolName,
-                });
-
-                controller.enqueue({
-                  type: 'tool-input-delta',
-                  id: toolCallId,
-                  delta: input,
-                });
-
-                controller.enqueue({
-                  type: 'tool-input-end',
-                  id: toolCallId,
-                });
-
-                controller.enqueue({
-                  type: 'tool-call',
-                  toolCallId,
-                  toolName,
-                  input,
-                });
+              for (const toolCallDelta of delta.tool_calls) {
+                toolCallTracker.processDelta(toolCallDelta);
               }
             }
 
@@ -481,6 +458,8 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
             if (activeText) {
               controller.enqueue({ type: 'text-end', id: '0' });
             }
+
+            toolCallTracker.flush();
 
             controller.enqueue({
               type: 'finish',
@@ -623,8 +602,21 @@ const mistralChatChunkSchema = z.object({
         tool_calls: z
           .array(
             z.object({
-              id: z.string(),
-              function: z.object({ name: z.string(), arguments: z.string() }),
+              // Mistral's official client (`@mistralai/mistralai`,
+              // `ToolCall$inboundSchema`) types `index` with `.default(0)` —
+              // it can be absent on the wire (confirmed by the pre-existing
+              // `mistral-tool-call.chunks.txt` fixture, which has no `index`
+              // key at all for its single-tool-call case).
+              index: z.number().nullish(),
+              // id/name are only guaranteed present on the first delta for a
+              // given index; continuation fragments may omit both and carry
+              // only an `arguments` fragment. (If Step 0 Question A found
+              // otherwise, adjust this comment to match reality.)
+              id: z.string().nullish(),
+              function: z.object({
+                name: z.string().nullish(),
+                arguments: z.string().nullish(),
+              }),
             }),
           )
           .nullish(),
