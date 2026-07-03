@@ -56,8 +56,13 @@ describe('doGenerate', () => {
       });
 
       const requestBody = await server.calls[0].requestBodyJson;
-      expect(requestBody).toHaveProperty('instructions', 'You are a helpful assistant.');
-      expect(requestBody.messages).not.toContainEqual(expect.objectContaining({ role: 'system' }));
+      expect(requestBody).toHaveProperty(
+        'instructions',
+        'You are a helpful assistant.',
+      );
+      expect(requestBody.messages).not.toContainEqual(
+        expect.objectContaining({ role: 'system' }),
+      );
     });
 
     it('should handle multiple system messages (uses first)', async () => {
@@ -70,15 +75,18 @@ describe('doGenerate', () => {
       });
 
       const requestBody = await server.calls[0].requestBodyJson;
-      expect(requestBody).toHaveProperty('instructions', 'First system message.');
-      expect(requestBody.messages).not.toContainEqual(expect.objectContaining({ role: 'system' }));
+      expect(requestBody).toHaveProperty(
+        'instructions',
+        'First system message.',
+      );
+      expect(requestBody.messages).not.toContainEqual(
+        expect.objectContaining({ role: 'system' }),
+      );
     });
 
     it('should handle no system messages (instructions undefined)', async () => {
       await model.doGenerate({
-        prompt: [
-          { role: 'user', content: [{ type: 'text', text: 'Hello!' }] },
-        ],
+        prompt: [{ role: 'user', content: [{ type: 'text', text: 'Hello!' }] }],
       });
 
       const requestBody = await server.calls[0].requestBodyJson;

@@ -166,10 +166,12 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
     }
 
     // Extract system messages for separate handling via instructions parameter
-    const systemMessages = prompt.filter(msg => msg.role === 'system').map(msg => msg.content);
+    const systemMessages = prompt
+      .filter(msg => msg.role === 'system')
+      .map(msg => msg.content);
     const nonSystemPrompt = prompt.filter(msg => msg.role !== 'system');
 
-    const baseArgs = {
+    const baseArgs: Record<string, unknown> = {
       // model id:
       model: this.modelId,
 
@@ -206,8 +208,12 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
 
       // messages:
       messages: convertToMistralChatMessages(nonSystemPrompt),
-      instructions: systemMessages.length > 0 ? systemMessages[0] : undefined,
     };
+
+    // Add instructions only if there are system messages
+    if (systemMessages.length > 0) {
+      baseArgs.instructions = systemMessages[0];
+    }
 
     const {
       tools: mistralTools,
