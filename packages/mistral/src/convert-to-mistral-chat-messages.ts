@@ -29,7 +29,9 @@ export function convertToMistralChatMessages(
 
     switch (role) {
       case 'system': {
-        messages.push({ role: 'system', content });
+        // System messages are not supported in Mistral's messages array.
+        // They should be passed separately via the 'instructions' parameter.
+        // Skip adding them here - they'll be handled by the caller.
         break;
       }
 
