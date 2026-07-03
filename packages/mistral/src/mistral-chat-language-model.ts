@@ -347,7 +347,9 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
           LanguageModelV4StreamPart
         >({
           start(controller) {
-            toolCallTracker = new StreamingToolCallTracker(controller, { generateId });
+            toolCallTracker = new StreamingToolCallTracker(controller, {
+              generateId,
+            });
             controller.enqueue({ type: 'stream-start', warnings });
           },
 

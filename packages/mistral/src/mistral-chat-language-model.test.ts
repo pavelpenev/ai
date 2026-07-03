@@ -908,15 +908,27 @@ describe('doStream', () => {
           input: JSON.parse(part.input),
         })),
       ).toStrictEqual([
-        { toolCallId: 'zJmyxuLgx', toolName: 'getWeather', input: { location: 'Paris, France' } },
-        { toolCallId: '39yaisjed', toolName: 'getWeather', input: { location: 'London, UK' } },
+        {
+          toolCallId: 'zJmyxuLgx',
+          toolName: 'getWeather',
+          input: { location: 'Paris, France' },
+        },
+        {
+          toolCallId: '39yaisjed',
+          toolName: 'getWeather',
+          input: { location: 'London, UK' },
+        },
       ]);
 
       expect(
-        parts.filter((p: any) => p.type === 'tool-input-start' && p.id === 'zJmyxuLgx'),
+        parts.filter(
+          (p: any) => p.type === 'tool-input-start' && p.id === 'zJmyxuLgx',
+        ),
       ).toHaveLength(1);
       expect(
-        parts.filter((p: any) => p.type === 'tool-input-end' && p.id === 'zJmyxuLgx'),
+        parts.filter(
+          (p: any) => p.type === 'tool-input-end' && p.id === 'zJmyxuLgx',
+        ),
       ).toHaveLength(1);
     });
   });
