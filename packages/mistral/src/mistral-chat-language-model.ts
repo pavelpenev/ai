@@ -166,7 +166,13 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
       });
     }
 
-    const baseArgs = {
+    // Extract system messages for separate handling via instructions parameter
+    const systemMessages = prompt
+      .filter(msg => msg.role === 'system')
+      .map(msg => msg.content);
+    const nonSystemPrompt = prompt.filter(msg => msg.role !== 'system');
+
+    const baseArgs: Record<string, unknown> = {
       // model id:
       model: this.modelId,
 
@@ -202,8 +208,13 @@ export class MistralChatLanguageModel implements LanguageModelV4 {
       document_page_limit: options.documentPageLimit,
 
       // messages:
-      messages: convertToMistralChatMessages(prompt),
+      messages: convertToMistralChatMessages(nonSystemPrompt),
     };
+
+    // Add instructions only if there are system messages
+    if (systemMessages.length > 0) {
+      baseArgs.instructions = systemMessages[0];
+    }
 
     const {
       tools: mistralTools,

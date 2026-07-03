@@ -42,6 +42,59 @@ describe('doGenerate', () => {
     };
   }
 
+  describe('system message', () => {
+    beforeEach(() => {
+      prepareJsonFixtureResponse('mistral-text');
+    });
+
+    it('should pass system message as instructions parameter, not in messages', async () => {
+      await model.doGenerate({
+        prompt: [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: [{ type: 'text', text: 'Hello!' }] },
+        ],
+      });
+
+      const requestBody = await server.calls[0].requestBodyJson;
+      expect(requestBody).toHaveProperty(
+        'instructions',
+        'You are a helpful assistant.',
+      );
+      expect(requestBody.messages).not.toContainEqual(
+        expect.objectContaining({ role: 'system' }),
+      );
+    });
+
+    it('should handle multiple system messages (uses first)', async () => {
+      await model.doGenerate({
+        prompt: [
+          { role: 'system', content: 'First system message.' },
+          { role: 'system', content: 'Second system message.' },
+          { role: 'user', content: [{ type: 'text', text: 'Hello!' }] },
+        ],
+      });
+
+      const requestBody = await server.calls[0].requestBodyJson;
+      expect(requestBody).toHaveProperty(
+        'instructions',
+        'First system message.',
+      );
+      expect(requestBody.messages).not.toContainEqual(
+        expect.objectContaining({ role: 'system' }),
+      );
+    });
+
+    it('should handle no system messages (instructions undefined)', async () => {
+      await model.doGenerate({
+        prompt: [{ role: 'user', content: [{ type: 'text', text: 'Hello!' }] }],
+      });
+
+      const requestBody = await server.calls[0].requestBodyJson;
+      expect(requestBody).not.toHaveProperty('instructions');
+      expect(requestBody.messages).toHaveLength(1);
+    });
+  });
+
   describe('text', () => {
     beforeEach(() => {
       prepareJsonFixtureResponse('mistral-text');
@@ -326,12 +379,9 @@ describe('doGenerate', () => {
         "body": {
           "document_image_limit": undefined,
           "document_page_limit": undefined,
+          "instructions": "You MUST answer with JSON.",
           "max_tokens": undefined,
           "messages": [
-            {
-              "content": "You MUST answer with JSON.",
-              "role": "system",
-            },
             {
               "content": [
                 {
