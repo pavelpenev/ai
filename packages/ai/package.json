@@ -41,18 +41,18 @@
     "./package.json": "./package.json",
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
     },
     "./internal": {
       "types": "./dist/internal/index.d.ts",
-      "import": "./dist/internal/index.js",
-      "default": "./dist/internal/index.js"
+      "import": "./src/internal/index.ts",
+      "default": "./src/internal/index.ts"
     },
     "./test": {
       "types": "./dist/test/index.d.ts",
-      "import": "./dist/test/index.js",
-      "default": "./dist/test/index.js"
+      "import": "./src/test/index.ts",
+      "default": "./src/test/index.ts"
     }
   },
   "dependencies": {
